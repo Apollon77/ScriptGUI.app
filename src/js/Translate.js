@@ -46,9 +46,8 @@ SGI = $.extend(true, SGI, {
         'Show Debugscript'      : {'de': 'Zeige Debugscript',        'en': 'Show debug script',           'ru': 'Показать отладочный скрипт'},
         'Datei:'                : {'de': 'Datei:',                   'en': 'File:',                       'ru': 'Файл:'},
         ' Live Test'            : {'de': ' Live Test',               'en': ' Live test',                  'ru': ' Live test'},
-        'Save Element'          : {'de': 'Element speichern',        'en': 'Save element',                'ru': 'Сохранить элемент'},
-        'Speicher local'        : {'de': 'Local speichern',          'en': 'Save local',                  'ru': 'Сохранить локально'},
-        'Öffnen local'          : {'de': 'Local öffnen',             'en': 'Open local',                  'ru': 'Загрузить локально'},
+        'Save Element'          : {'de': 'Als vorlage speichern',    'en': 'Save as pattern',             'ru': 'Сохранить элемент'},  //ToDo RU
+        'Öffne last'            : {'de': 'Öffne letztes prg',        'en': 'Open last prg',               'ru': 'Загрузить локально'}, //ToDo RU
         'Links Ausrichten'      : {'de': 'Links Ausrichten',         'en': 'Align left',                  'ru': 'Выравнить слева'},
         'Rechts Ausrichten'     : {'de': 'Rechts Ausrichten',        'en': 'Align right',                 'ru': 'Выравнить справа'},
         'Oben Ausrichten'       : {'de': 'Oben Ausrichten',          'en': 'Align top',                   'ru': 'Выравнить сверху'},
@@ -69,14 +68,32 @@ SGI = $.extend(true, SGI, {
         'Listen Filter'         : {'de': 'Listen Filter',            'en': 'List filter',                 'ru': 'Фильтры'},
         'Get Set Var'           : {'de': 'Get Set Var',              'en': 'Get Set Var',                 'ru': 'Читать/Писать'},
         'Convert'               : {'de': 'Convert',                  'en': 'Convert',                     'ru': 'Конверт.'},
-        'Math.'                 : {'de': 'Math.',                    'en': 'Math.',                       'ru': 'Матем.'},          //mathematik
+        'Math.'                 : {'de': 'Math.',                    'en': 'Math.',                       'ru': 'Матем.'},
         'Singel Trigger'        : {'de': 'Singel Trigger',           'en': 'Single Trigger',              'ru': 'Триггеры(один)'},
         'Zeit Trigger'          : {'de': 'Zeit Trigger',             'en': 'Time Trigger',                'ru': 'Триггеры(время)'},
         'Trigger Daten'         : {'de': 'Trigger Daten',            'en': 'Trigger Data',                'ru': 'Триггеры(данные)'},
         'Expert'                : {'de': 'Expert',                   'en': 'Expert',                      'ru': 'Эксперт'},
-        'Mode'                : {'de': 'Mode',                   'en': 'Mode',                      'ru': ''},
-        'Editor'                : {'de': 'Editor',                   'en': 'Editor',                      'ru': ''},
-        'GUI'                : {'de': 'GUI',                   'en': 'GUI',                      'ru': ''},
+        'Mode'                  : {'de': 'Mode',                     'en': 'Mode',                        'ru': ''},//ToDo RU
+        'Editor'                : {'de': 'Editor',                   'en': 'Editor',                      'ru': ''},//ToDo RU
+        'GUI'                   : {'de': 'GUI',                      'en': 'GUI',                         'ru': ''},//ToDo RU
+        'Update'                : {'de': 'Update',                   'en': 'Update',                      'ru': ''},//ToDo RU
+        'Version ist:'          : {'de': 'Installierte Version:',    'en': 'Installed version:',          'ru': ''},//ToDo RU
+        'Neuste Version:'       : {'de': 'Neuste Version:',          'en': 'Latest version:',             'ru': ''},//ToDo RU
+        'register'              : {'de': 'Senden',                   'en': 'Send',                        'ru': ''},//ToDo RU
+        'erstellung'            : {'de': 'Build: ',                  'en': 'Build: ',                     'ru': ''},//ToDo RU
+        'ok'                    : {'de': 'ok',                       'en': 'ok',                          'ru': ''},//ToDo RU
+        'path'                  : {'de': 'Pfad: ',                 'en': 'path: ',                      'ru': 'пластырь:'},//ToDo RU
+        'select_datastore'      : {'de': 'Bitte Wählen sie das Verzeichnis in dem der ScriptGUI_Datastore enthalten ist bzw. erstellt werden soll.',
+                                   'en': 'Build: ',
+                                   'ru': ''},//ToDo RU
+        'register_info'         : {'de': 'Bitte registrieren Sie Ihre Version<br>und<br>helfen sie mit ScriptGUI zu verbessern',
+                                   'en': 'Please register your copy<br>and<br>help you to improve ScriptGUI',
+                                   'ru': ''},//ToDo RU
+
+
+// Setup Dialog
+        'Auto update'           : {'de': 'Neue Version suchen',     'en': 'Search new version',            'ru': ''},//ToDo RU
+        'Auto Codebox'          : {'de': 'Auto Codebox',            'en': 'Auto Codebox',                  'ru': ''},//ToDo RU
 
 
 // Shortcut
@@ -581,7 +598,7 @@ SGI = $.extend(true, SGI, {
 				console.warn("Keine Übersätzung für "+ text + " in "+ SGI.language +" gefunden");
 			return SGI.words[text]["de"];
 		}else{
-		    console.warn(text);
+//		    console.warn(text);
 			return text;
 		}
 	}

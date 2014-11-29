@@ -6,12 +6,12 @@
 jQuery.extend(true, SGI, {
 
     menu_iconbar: function () {
-        $("#menu.sf-menu").superfish({
+        $("#menu.sf-menu").superclick({
             hoverClass: 'sfHover',
             uiClass: 'ui-state-hover',  // jQuery-UI modified
             pathClass: 'overideThisToUse',
             pathLevels: 1,
-            disableHI: false,
+            disableHI: false
         });
 
         $('li.ui-state-default').hover(
@@ -29,19 +29,20 @@ jQuery.extend(true, SGI, {
             SGI.clear();
         });
         $("#m_save").click(function () {
-            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
-                SGI.save_ccu_io();
-            }
+//            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
+            SGI.save_local();
+//            }
         });
         $("#m_save_as").click(function () {
-            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
-                SGI.save_as_ccu_io();
-            }
+//            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
+            SGI.save_as_local();
+//            }
         });
         $("#m_open").click(function () {
 //            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
-            console.log("open")
-            SGI.open_ccu_io();
+
+            SGI.open_local();
+
 //            }
         });
         $("#m_example").click(function () {
@@ -58,11 +59,10 @@ jQuery.extend(true, SGI, {
         $("#ul_theme li a").click(function () {
             $("#theme_css").remove();
             $("head").append('<link id="theme_css" rel="stylesheet" href="css/' + $(this).data('info') + '/jquery-ui.min.css"/>');
-
-            //resize Event auslössen um Slider zu aktualisieren
-            var evt = document.createEvent('UIEvents');
-            evt.initUIEvent('resize', true, false, window, 0);
-            window.dispatchEvent(evt);
+            setTimeout(function () {
+                document.styleSheets[1].cssRules[3].style["background-color"] = $(".frame_color").css("background-color");
+                document.styleSheets[1].cssRules[4].style["background-color"] = $(".frame_color").css("background-color");
+            }, 300);
 
 
         });
@@ -71,18 +71,12 @@ jQuery.extend(true, SGI, {
             $("#setup_dialog").dialog("open");
         });
 
-        $("#clear_cache").click(function () {
-            storage.set(SGI.str_theme, null);
-            storage.set(SGI.str_settings, null);
-            storage.set(SGI.str_prog, null);
-        });
-
         $("#m_show_script").click(function () {
-            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
+//            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
 
-                var script = Compiler.make_prg();
-                SGI.show_Script(script)
-            }
+            var script = Compiler.make_prg();
+            SGI.show_Script(script)
+//            }
         });
         $("#m_save_script").click(function () {
             SGI.save_Script();
@@ -132,6 +126,10 @@ jQuery.extend(true, SGI, {
             window.open("http://www.youtube.com/playlist?list=PLsNM5ZcvEidhmzZt_mp8cDlAVPXPychU7", null, "fullscreen=1,status=no,toolbar=no,menubar=no,location=no");
 
         });
+        $("#m_update").click(function () {
+            SGI.update(true);
+
+        });
 
         $("#grid").click(function () {
             var fbs_list = $(".fbs_element");
@@ -147,21 +145,6 @@ jQuery.extend(true, SGI, {
             })
         });
 
-        $("#m_open_lfile").click(function () {
-            $("#m_open_lfile_input").trigger("click");
-        });
-        $("#m_open_lfile_input").change(function (event) {
-            var file = event.target.files;
-            var reader = new FileReader();
-            reader.onload = function () {
-                var text = reader.result;
-                SGI.clear();
-                SGI.load_prg(JSON.parse(text));
-                SGI.file_name = file[0].name.split(".")[0];
-                $("#m_file").text(SGI.file_name);
-            };
-            reader.readAsText(file[0]);
-        });
         $("#m_mbs-image").click(function () {
 
             var type;
@@ -179,7 +162,7 @@ jQuery.extend(true, SGI, {
 //          Für Trigger
             $("#endpoints").css({
                 left: 0 - left + "px",
-                top: 0 - top + "px",
+                top: -2 - top -height + "px",
                 position: "relative"
 
             });
@@ -198,7 +181,7 @@ jQuery.extend(true, SGI, {
                 position: "relative"
             });
 
-//            Für Pause,Intervall,Loop
+            //Für Pause,Intervall,Loop
 //            $("#endpoints").css({
 //                left: 10 - left + "px",
 //                top: 0 - top + "px",
@@ -219,42 +202,64 @@ jQuery.extend(true, SGI, {
 //                top: "50%",
 //            });
 
-            canvg();
-            canvg();
-            canvg();
-            canvg();
-            canvg();
-            canvg();
 
-            html2canvas(document.getElementById("photo"), {
-                background: undefined,
-                onrendered: function (canvas) {
+            var data = $("#photo").html();
 
-                    $("body").append('<div style="text-align: center" id="dialog_photo"></div>');
+            data = data
+                .replace("<div", '<div style="height:'+height+'px ; width:'+width+'px "')
+                .replace(/(ng-model="|ng-style=")[A-Za-z0-9\[\].]+"/g, "")
+                .replace(/(id=")[A-Za-z0-9\[\]._]+"/g, "")
+                .replace(/(ng-)[A-Za-z0-9\[\].]+/g, "")
+                .replace(/(_jsPlumb_endpoint_anchor_|jsplumb-draggable|jsplumb-droppable)/g, "")
+                .replace(/(_jsPlumb_endpoint)/g, "html_endpoint")
+                .replace(/(mbs_element )/g, "mbs_html ");
 
-                    $("#dialog_photo").dialog({
-                        modal: true,
-                        close: function () {
-                            $("#dialog_photo").remove()
-                        }
-                    });
+            var h = $(window).height() - 10;
+            var v = $(window).width() - 10;
 
-                    $("#dialog_photo").append(canvas)
-                    canvas.toBlob(function (blob) {
-                        saveAs(blob, type + ".png");
-                    });
-                    var data = storage.get(SGI.str_prog);
-
+            $("body").append('\
+                   <div id="dialog_html" style="text-align: left" title="Scriptvorschau">\
+                    <textarea id="codemirror_html" name="codemirror" class="code frame_color ui-corner-all"></textarea>\
+                    <button id="save_html">Save</button>\
+                   </div>');
+            $("#dialog_html").dialog({
+                height: h,
+                width: v,
+                resizable: true,
+                close: function () {
+                    $("#dialog_html").remove();
                     SGI.clear();
-                    SGI.load_prg(data);
-
                 }
             });
 
+            $("#save_html").button().click(function(){
+                bausteine[type] =  {};
+                bausteine[type]["data"] =  editor.getValue();
+                bausteine[type]["h"] =  height;
+                bausteine[type]["w"] =  width;
+                fs.writeFile(nwDir+ '/../../src/js/bausteine.json', JSON.stringify(bausteine), function (err) {
+                    if (err){
+                        throw err;
+                    }else{
+                        $("#dialog_html").dialog("close");
+                    }
+                });
+            });
+
+            var editor = CodeMirror.fromTextArea(document.getElementById("codemirror_html"), {
+                mode : "xml",
+                htmlMode: true,
+                lineNumbers: true,
+                readOnly: false,
+                theme: "monokai"
+            });
+            editor.setOption("value", html_beautify(data.toString(), {indent_size: 2}));
+
         });
+
         $("#m_fbs-image").click(function () {
 
-            var type;
+            var type ="";
             var left = $(".fbs_element").position().left;
             var height = $(".fbs_element").height();
             var width = $(".fbs_element").width();
@@ -266,10 +271,17 @@ jQuery.extend(true, SGI, {
             $(".fbs_element, ._jsPlumb_endpoint").wrapAll('<div id="photo" style="position: relative"></div>');
             $("._jsPlumb_endpoint").wrapAll('<div id="endpoints" style="position: relative"></div>');
 
+//            $("#endpoints").css({
+//                left: 10 -  width + "px",
+//                top: -4  - top -height + "px",
+//                position: "relative"
+//            });
+
             $("#endpoints").css({
-                left: 8 - left + "px",
-                top: 0 - top + "px",
-                position: "relative"
+                left: -0 - left + "px",
+                top: -4  - top -height + "px",
+                position: "relative",
+                zindex: 10000
             });
 
             $(".fbs_element").css({
@@ -283,56 +295,69 @@ jQuery.extend(true, SGI, {
                 position: "relative"
             });
 
+            var data = $("#photo").html();
 
-            canvg();
-            canvg();
-            canvg();
-            canvg();
-            canvg();
-            canvg();
+            data = data
+                .replace("<div", '<div style="height:'+height+'px ; width:'+width+'px "')
+                .replace(/(ng-bind="fbs\[0\].name")/g, "")
+                .replace(/(ng-model="|ng-style=")[A-Za-z0-9\[\].]+"/g, "")
+                .replace(/(id="|ng-style=")[A-Za-z0-9\[\]._]+"/g, "")
+                .replace(/(ng-)[A-Za-z0-9\[\].]+/g, "")
+                .replace(/(_jsPlumb_endpoint_anchor_|jsplumb-draggable|jsplumb-droppable)/g, "")
+                .replace(/(_jsPlumb_endpoint)/g, "html_endpoint")
+                .replace(/(fbs_element )/g, "fbs_html ");
 
-            html2canvas(document.getElementById("photo"), {
-                background: undefined,
-                onrendered: function (canvas) {
+            var h = $(window).height() - 10;
+            var v = $(window).width() - 10;
 
-                    $("body").append('<div style="text-align: center" id="dialog_photo"></div>');
+            $("body").append('\
+                   <div id="dialog_html" style="text-align: left" title="Scriptvorschau">\
+                    <textarea id="codemirror_html" name="codemirror" class="code frame_color ui-corner-all"></textarea>\
+                    <button id="save_html">Save</button>\
+                   </div>');
+            $("#dialog_html").dialog({
+                height: h,
+                width: v,
+                resizable: true,
+                close: function () {
 
-                    $("#dialog_photo").dialog({
-                        modal: true,
-                        close: function () {
-                            $("#dialog_photo").remove()
-                        }
-                    });
-
-                    $("#dialog_photo").append(canvas)
-                    canvas.toBlob(function (blob) {
-                        saveAs(blob, type + ".png");
-                    });
-                    var data = storage.get(SGI.str_prog);
-
+                    $("#dialog_html").remove();
                     SGI.clear();
-                    SGI.load_prg(data);
-
                 }
             });
 
+            $("#save_html").button().click(function(){
+                bausteine[type] =  {};
+                bausteine[type]["data"] =  editor.getValue();
+                bausteine[type]["h"] =  height;
+                bausteine[type]["w"] =  width;
+                fs.writeFile(nwDir+ '/../../src/js/bausteine.json', JSON.stringify(bausteine), function (err) {
+                    if (err){
+                        throw err;
+                    }else{
+                        $("#dialog_html").dialog("close");
+                    }
+                });
+            });
+
+            var editor = CodeMirror.fromTextArea(document.getElementById("codemirror_html"), {
+                mode : "xml",
+                htmlMode: true,
+                lineNumbers: true,
+                readOnly: false,
+                theme: "monokai"
+            });
+            editor.setOption("value", html_beautify(data.toString(), {indent_size: 2}));
+
+
         });
 
-        $("#m_new-struck").click(function () {
-
-            SGI.make_struc_new()
-        });
-        $("#m_add_fir_bug").click(function () {
-
-            $("head").append('<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>')
-        });
         $("#m_show_debugscript").click(function () {
 
-            if ($("body").find(".ui-dialog:not(.quick-help)").length == 0) {
 
-                var script = Compiler.make_prg(true);
-                SGI.show_Script(script)
-            }
+            var script = Compiler.make_prg(sim.run_type);
+            SGI.show_Script(script)
+
         });
 
 // Icon Bar XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -340,9 +365,9 @@ jQuery.extend(true, SGI, {
 // Local
         $("#img_save_local").click(function () {
 
-            var data = SGI.make_savedata();
+            SGI.save_local();
 
-            storage.set(SGI.str_prog, data);
+
             $(this).stop(true, true).effect("highlight")
         }).hover(
             function () {
@@ -353,10 +378,7 @@ jQuery.extend(true, SGI, {
         );
 
         $("#img_open_local").click(function () {
-            var data = storage.get(SGI.str_prog);
-
-            SGI.clear();
-            SGI.load_prg(data);
+            SGI.open_last();
 
             $(this).stop(true, true).effect("highlight")
         }).hover(
@@ -369,7 +391,7 @@ jQuery.extend(true, SGI, {
 
 // Ordnen
         $("#img_set_left").click(function () {
-            var items = $(".fbs_selected");
+            var items = $(".jsplumb-drag-selected");
             if (items.length > 1) {
 
                 function SortByName(a, b) {
@@ -388,7 +410,7 @@ jQuery.extend(true, SGI, {
                 var codebox = $(items.parent().parent()).attr("id");
                 SGI.plumb_inst["inst_" + codebox].repaintEverything();
             }
-            var items = $(".mbs_selected");
+            items = $(".mbs_selected");
             if (items.length > 1) {
 
                 function SortByName(a, b) {
@@ -416,7 +438,9 @@ jQuery.extend(true, SGI, {
         );
 
         $("#img_set_right").click(function () {
-            var items = $(".fbs_selected");
+            var position;
+            var items = $(".jsplumb-drag-selected");
+
             if (items.length > 1) {
                 function SortByName(a, b) {
                     var aName = $(a).position().left + $(a).width();
@@ -425,7 +449,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().left + $(items[0]).width();
+                position = $(items[0]).position().left + $(items[0]).width();
 
                 $.each(items, function () {
                     $(this).css("left", position - $(this).width());
@@ -434,7 +458,7 @@ jQuery.extend(true, SGI, {
                 var codebox = $(items.parent().parent()).attr("id");
                 SGI.plumb_inst["inst_" + codebox].repaintEverything();
             }
-            var items = $(".mbs_selected");
+            items = $(".mbs_selected");
             if (items.length > 1) {
                 function SortByName(a, b) {
                     var aName = $(a).position().left + $(a).width();
@@ -443,7 +467,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().left + $(items[0]).width();
+                position = $(items[0]).position().left + $(items[0]).width();
 
                 $.each(items, function () {
                     $(this).css("left", position - $(this).width());
@@ -461,7 +485,8 @@ jQuery.extend(true, SGI, {
         );
 
         $("#img_set_top").click(function () {
-            var items = $(".fbs_selected");
+            var position;
+            var items = $(".jsplumb-drag-selected");
             if (items.length > 1) {
                 function SortByName(a, b) {
                     var aName = $(a).position().top;
@@ -470,7 +495,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().top;
+                position = $(items[0]).position().top;
 
                 $.each(items, function () {
                     $(this).css("top", position);
@@ -478,7 +503,7 @@ jQuery.extend(true, SGI, {
                 var codebox = $(items.parent().parent()).attr("id");
                 SGI.plumb_inst["inst_" + codebox].repaintEverything();
             }
-            var items = $(".mbs_selected");
+            items = $(".mbs_selected");
             if (items.length > 1) {
                 function SortByName(a, b) {
                     var aName = $(a).position().top;
@@ -487,7 +512,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().top;
+                position = $(items[0]).position().top;
 
                 $.each(items, function () {
                     $(this).css("top", position);
@@ -505,7 +530,8 @@ jQuery.extend(true, SGI, {
         );
 
         $("#img_set_bottom").click(function () {
-            var items = $(".fbs_selected");
+            var position;
+            var items = $(".jsplumb-drag-selected");
             if (items.length > 1) {
                 function SortByName(a, b) {
                     var aName = $(a).position().top;
@@ -514,7 +540,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().top;
+                position = $(items[0]).position().top;
 
                 $.each(items, function () {
                     $(this).css("top", position);
@@ -531,7 +557,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 items.sort(SortByName);
-                var position = $(items[0]).position().top;
+                position = $(items[0]).position().top;
 
                 $.each(items, function () {
                     $(this).css("top", position);
@@ -549,7 +575,8 @@ jQuery.extend(true, SGI, {
         );
 
         $("#img_set_steps").click(function () {
-            var items = $(".fbs_selected");
+
+            var items = $(".jsplumb-drag-selected");
             if (items.length > 1) {
                 function SortByTop(a, b) {
                     var aName = $(a).position().top;
@@ -688,15 +715,25 @@ jQuery.extend(true, SGI, {
                 $(this).removeClass("ui-state-focus");
             }
         );
+
+        var script_engine_lock = false;
         $("#img_set_script_engine").click(function () {
-            try {
-                SGI.socket.emit("reloadScriptEngine");
-            } catch (err) {
-                alert("Keine Verbindung zu CCU.IO");
+            if (!script_engine_lock) {
+                try {
+
+//                    SGI.socket.emit("reloadScriptEngine");
+
+
+                } catch (err) {
+                    alert("Keine Verbindung zu CCU.IO");
+                }
+
+                script_engine_lock = true;
+                $(this).stop(true, true).effect("highlight", "linear", 6000, function () {
+                    script_engine_lock = false;
+                })
+
             }
-
-
-            $(this).stop(true, true).effect("highlight")
         }).hover(
             function () {
                 $(this).addClass("ui-state-focus");
@@ -735,6 +772,7 @@ jQuery.extend(true, SGI, {
             if ($(this).parent().hasClass("div_img_glass_on")) {
                 SGI.disconnect()
             } else {
+                SGI.disconnect()
                 SGI.offline()
             }
         }).hover(
@@ -749,6 +787,7 @@ jQuery.extend(true, SGI, {
             if ($(this).parent().hasClass("div_img_glass_on")) {
                 SGI.disconnect()
             } else {
+                SGI.disconnect()
                 SGI.online()
             }
 
@@ -761,8 +800,14 @@ jQuery.extend(true, SGI, {
         );
 
 // Live Test
-        $("#img_set_script_play").click(function () {
-                simulate();
+        $("#img_set_script_play").button().click(function () {
+                if (SGI.con_data) {
+
+                    sim.simulate();
+                    $(this).append('<div id="play_overlay"  ></div>')
+                } else {
+                    alert("Keine Online/Offline daten")
+                }
             }
         ).hover(
             function () {
@@ -772,8 +817,10 @@ jQuery.extend(true, SGI, {
             }
         );
 
-        $("#img_set_script_stop").click(function () {
-                stopsim();
+        $("#img_set_script_stop").button().click(function () {
+                sim.stopsim();
+                console.log(this)
+
             }
         ).hover(
             function () {
@@ -782,6 +829,14 @@ jQuery.extend(true, SGI, {
                 $(this).removeClass("ui-state-focus");
             }
         );
+
+
+        $("#run_type").buttonset();
+
+
+        $('.run_type').click(function () {
+            sim.run_type = $(".run_type:checked").data("info");
+        });
 
 
         $("#prg_panel").on("click", ".btn_min_trigger", function () {
@@ -800,7 +855,6 @@ jQuery.extend(true, SGI, {
             $(this).stop(true, true).effect("highlight");
 
         });
-
     },
 
     Setup_dialog: function () {
@@ -816,7 +870,7 @@ jQuery.extend(true, SGI, {
         $(".setup_cat").click(function () {
             $(".setup_field_content").hide();
             $("#" + $(this).data("info")).show();
-        })
+        });
 
 
         $(".setup_field_content").hide();
@@ -971,6 +1025,21 @@ jQuery.extend(true, SGI, {
                     className: "item_font",
                     callback: function (key, opt) {
                         SGI.expert_save(opt)
+                    }
+                }
+            }
+        });
+
+        $.contextMenu({
+            selector: '.fbs_exp_custom',
+            zIndex: 9999,
+            className: "ui-widget-content ui-corner-all",
+            items: {
+                "Del": {
+                    name: SGI.translate("Lösche Vorlage"),
+                    className: "item_font",
+                    callback: function (key, opt) {
+                        SGI.expert_del(opt)
                     }
                 }
             }
@@ -1475,7 +1544,7 @@ jQuery.extend(true, SGI, {
             selector: '._jsPlumb_connector',
             zIndex: 9999,
             className: "ui-widget-content ui-corner-all",
-            build: function ($trigger, e) {
+            build: function ($trigger) {
                 if ($trigger.parent().attr("id") == "prg_panel") {
                     return {
                         className: "ui-widget-content ui-corner-all",
@@ -1483,11 +1552,15 @@ jQuery.extend(true, SGI, {
                             "auto_route": {
                                 name: SGI.translate("Auto route"),
                                 className: "item_font ",
-                                callback: function (key, opt) {
+                                callback: function () {
                                     $(".dot").remove();
                                     scope.con.mbs[SGI.con.id].connector.stub = [30, 30];
                                     scope.con.mbs[SGI.con.id].connector.midpoint = 0.5;
-                                    SGI.con.setConnector([ "Flowchart", { stub: [30, 30], alwaysRespectStubs: true, midpoint: 0.5}  ]);
+                                    SGI.con.setConnector(["Flowchart", {
+                                        stub: [30, 30],
+                                        alwaysRespectStubs: true,
+                                        midpoint: 0.5
+                                    }]);
                                     scope.$apply();
                                 }
                             }
@@ -1495,20 +1568,20 @@ jQuery.extend(true, SGI, {
                     }
                 }
 
-                return  {
+                return {
                     className: "ui-widget-content ui-corner-all",
                     items: {
                         "add_Force": {
                             name: SGI.translate("Add Force"),
                             className: "item_font ",
-                            callback: function (key, opt) {
+                            callback: function () {
                                 SGI.add_force(SGI.con);
                             }
                         },
                         "del_Force": {
                             name: SGI.translate("Del Force"),
                             className: "item_font ",
-                            callback: function (key, opt) {
+                            callback: function () {
 
                                 SGI.del_force(SGI.con);
 
@@ -1517,11 +1590,15 @@ jQuery.extend(true, SGI, {
                         "auto_route": {
                             name: SGI.translate("Auto route"),
                             className: "item_font ",
-                            callback: function (key, opt) {
+                            callback: function () {
                                 $(".dot").remove();
                                 scope.con.fbs[$trigger.parent().attr("id")][SGI.con.id].connector.stub = [30, 30];
                                 scope.con.fbs[$trigger.parent().attr("id")][SGI.con.id].connector.midpoint = 0.5;
-                                SGI.con.setConnector([ "Flowchart", { stub: [30, 30], alwaysRespectStubs: true, midpoint: 0.5}  ]);
+                                SGI.con.setConnector(["Flowchart", {
+                                    stub: [30, 30],
+                                    alwaysRespectStubs: true,
+                                    midpoint: 0.5
+                                }]);
                                 scope.$apply();
                             }
                         }
@@ -1531,21 +1608,6 @@ jQuery.extend(true, SGI, {
 
         });
 
-        $.contextMenu({
-            selector: '.CodeMirror',
-            zIndex: 9999,
-            className: "ui-widget-content ui-corner-all",
-            items: {
-                "format": {
-                    name: SGI.translate("Autoformat"),
-                    className: "item_font ",
-                    callback: function (key, opt) {
-                        var _data = editor.getSelection();
-                        editor.replaceSelection(js_beautify(_data));
-                    }
-                }
-            }
-        });
     },
 
     add_force: function (con) {
@@ -1696,44 +1758,44 @@ jQuery.extend(true, SGI, {
                 SGI.plumb_inst.inst_mbs.deleteEndpoint($(ep).attr("elementId"));
             }
 
-            delete scope.fbs[$(this).data("nr")];
+            if ($(this).hasClass("fbs_element")) {
+                delete scope.fbs[$(this).data("nr")];
+            }
+
         });
         $($this).remove();
         delete scope.mbs[$($this).data("nr")];
 
         scope.$apply();
+
     },
 
     del_selected: function () {
 
         var mbs_sel = $(".mbs_selected");
-        var fbs_sel = $(".fbs_selected");
+        var fbs_sel = $(".jsplumb-drag-selected");
         var opt = {};
 
-        $.each(fbs_sel, function () {
+        $.each($(".jsplumb-drag-selected"), function () {
+            if ($(this).hasClass("fbs_element")) {
+                if ($(this).hasClass("fbs_element_onborder")) {
+                    opt.$trigger = this;
+                    SGI.del_fbs_onborder(opt)
 
-            if ($(this).hasClass("fbs_element_onborder")) {
-                opt.$trigger = this;
-                SGI.del_fbs_onborder(opt)
-
+                } else {
+                    opt.$trigger = this;
+                    SGI.del_fbs(opt)
+                }
             } else {
-                opt.$trigger = this;
-                SGI.del_fbs(opt)
+                if ($(this).hasClass("mbs_element_codebox")) {
+                    opt.$trigger = this;
+                    SGI.del_codebox(opt)
+
+                } else {
+                    opt.$trigger = this;
+                    SGI.del_mbs(opt)
+                }
             }
-        });
-
-        $.each(mbs_sel, function () {
-
-            if ($(this).hasClass("mbs_element_codebox")) {
-                opt.$trigger = this;
-                SGI.del_codebox(opt)
-
-            } else {
-                opt.$trigger = this;
-                SGI.del_mbs(opt)
-            }
-
-
         });
 
     },
@@ -1875,60 +1937,138 @@ jQuery.extend(true, SGI, {
     },
 
     expert_save: function (opt) {
+        var nr = $(opt.$trigger).data("nr");
 
-    },
+        var data = {
+            name: scope.fbs[nr]["opt"],
+            value: scope.fbs[nr]["value"],
+            in: scope.fbs[nr]["exp_in"],
+            out: scope.fbs[nr]["exp_out"]
+        };
 
-    save_as_ccu_io: function () {
-        SGI.make_savedata();
-        $.fm({
-            lang: SGI.language,
-            path: "/www/ScriptGUI/prg_Store/",
-            file_filter: ["prg"],
-            folder_filter: true,
-            mode: "save"
+        fs.writeFile(scope.setup.datastore + '/ScriptGUI_Data/experts/expert_' + data.name + '.json', JSON.stringify(data), function (err) {
+            if (err) {
+                throw err;
+            } else {
+                SGI.read_experts();
+            }
 
-        }, function (_data) {
-            SGI.socket.emit("writeRawFile", _data.path + _data.file.split(".")[0] + ".prg", JSON.stringify(PRG.valueOf()), function (data) {
-
-                SGI.prg_store = _data.path;
-                SGI.file_name = _data.file.split(".")[0];
-                $("#m_file").text(SGI.file_name);
-            });
         });
     },
 
-    save_ccu_io: function () {
+    expert_del: function (opt) {
+        var name = $(opt.$trigger).attr("id");
+        fs.unlink(scope.setup.datastore + '/ScriptGUI_Data/experts/' + name + ".json", function (err) {
+            if (err) {
+                throw err;
+            } else {
+                SGI.read_experts();
+            }
+
+        });
+    },
+
+    save_as_local: function () {
+        var data = SGI.make_savedata();
+        var chooser = $('#prgsaveas');
+        chooser.change(function () {
+            var filep = $(this).val();
+            fs.writeFile(filep, JSON.stringify(data), function (err) {
+                if (err) {
+                    throw err;
+                } else {
+                    SGI.prg_store = path.dirname(filep);
+                    SGI.file_name = path.basename(filep);
+                    $("#m_file").text(SGI.file_name);
+                    scope.setup.last_file = filep;
+                    scope.$apply()
+                }
+            });
+        });
+        chooser.trigger('click');
+    },
+
+    save_local: function () {
         if (SGI.file_name == "") {
-            SGI.save_as_ccu_io()
+            SGI.save_as_local()
         } else {
-            SGI.make_savedata();
+            var data = SGI.make_savedata();
+
             try {
-                SGI.socket.emit("writeRawFile", SGI.prg_store + SGI.file_name + ".prg", JSON.stringify(PRG.valueOf()), function (ok) {
+                fs.writeFile(path.resolve(scope.setup.datastore + "/ScriptGUI_Data/programms/" + SGI.file_name), JSON.stringify(data), function (err) {
+                    if (err) {
+                        throw err;
+                    } else {
+
+
+                    }
                 });
             } catch (err) {
-                alert("Keine Verbindung zu CCU.IO")
+                alert("Speichern nicht möglich")
             }
         }
     },
 
-    open_ccu_io: function () {
-        $.fm({
-            lang: SGI.language,
-            path: "www/ScriptGUI/prg_Store/",
-            file_filter: ["prg"],
-            folder_filter: true,
-            mode: "open"
+    open_local: function () {
+        var chooser = $('#prgopen');
+        chooser.val("");
+        chooser.change(function (evt) {
+            var filep = $(this).val();
+            $("#wait_div").show();
+            try {
 
-        }, function (_data) {
-            SGI.socket.emit("readJsonFile", _data.path + _data.file, function (data) {
-                SGI.clear();
-                SGI.load_prg(data);
-                SGI.prg_store = _data.path;
-                SGI.file_name = _data.file.split(".")[0];
-                $("#m_file").text(SGI.file_name);
-            });
+                fs.readFile(filep, function (err, data) {
+                    if (err) {
+                        $("#wait_div").hide();
+                        throw err;
+                    } else {
+                        SGI.clear();
+                        SGI.load_prg(JSON.parse(data));
+
+                        SGI.prg_store = path.dirname(filep);
+                        SGI.file_name = path.basename(filep);
+                        $("#m_file").text(SGI.file_name);
+                        scope.setup.last_file = filep;
+                        scope.$apply();
+                        $("#wait_div").hide();
+                    }
+                });
+            }
+            catch (err) {
+                $("#wait_div").hide();
+                throw err
+
+            }
+
 
         });
+
+        chooser.trigger('click');
+    },
+
+    open_last: function () {
+        if (scope.setup.last_file != "") {
+            try {
+                $("#wait_div").show();
+                fs.readFile(scope.setup.last_file, function (err, data) {
+                    if (err) {
+                        $("#wait_div").hide();
+                        alert("Datei kann nicht gelesen werden")
+                    } else {
+                        SGI.clear();
+                        SGI.load_prg(JSON.parse(data));
+                        SGI.prg_store = path.dirname(scope.setup.last_file);
+                        SGI.file_name = path.basename(scope.setup.last_file);
+                        $("#m_file").text(SGI.file_name);
+                        $("#wait_div").hide();
+                    }
+                });
+            }
+            catch (err) {
+                $("#wait_div").hide();
+                throw err
+            }
+        }
     },
 
     example_ccu_io: function () {
@@ -1943,7 +2083,7 @@ jQuery.extend(true, SGI, {
             SGI.socket.emit("readJsonFile", _data.path + _data.file, function (data) {
                 SGI.clear();
                 SGI.load_prg(data);
-                SGI.file_name = _data.file.split(".")[0];
+                SGI.file_name = _data.file;
                 $("#m_file").text(SGI.file_name);
             });
         });
@@ -1952,10 +2092,12 @@ jQuery.extend(true, SGI, {
     save_Script: function () {
         var script = Compiler.make_prg();
         if (SGI.file_name == undefined || SGI.file_name == "Neu" || SGI.file_name == "") {
-            alert("Bitte erst Programm Speichern")
+            alert("Bitte erst Programm Speichern");
+
         } else {
             try {
-                SGI.socket.emit("writeRawFile", "scripts/" + SGI.file_name + ".js", script);
+                var name = SGI.file_name.replace('.prg', '.js');
+                SGI.socket.emit("writeRawFile", "scripts/" + name, script);
             } catch (err) {
                 alert("Keine Verbindung zu CCU.IO")
             }
@@ -2000,51 +2142,18 @@ jQuery.extend(true, SGI, {
         });
 
 
-        editor.setOption("value", js_beautify(data.toString(), { indent_size: 2 }));
+        editor.setOption("value", js_beautify(data.toString(), {indent_size: 2}));
 
     },
 
-    show_setup: function (data) {
-        var h = $(window).height() - 200;
+    error_box: function (data) {
 
-        $("body").append('\
-                   <div id="dialog_setup" style="text-align: left;overflow: hidden " title="Setup">\
-                    <div id="setup_body" style="width: 450px ;height: 100%;" >\
-                        <h3>CCU.IO Info</h3>\
-                        <a style="line-height: 30px" class="item_font">Längengrad</a>     <input disabled data-info="latitude" value="' + SGI.settings.ccu.latitude + ' "class="setup_inp"><br> \
-                        <a style="line-height: 30px" class="item_font">Breitengrad</a>    <input disabled data-info="longitude" value="' + SGI.settings.ccu.longitude + ' "class="setup_inp"><br> \
-                        <hr>\
-                        <h3>Dämmerung</h3>\
-                        <a style="line-height: 30px" class="item_font">Morgendämmerung</a><input data-info="sunrise" value="' + SGI.settings.ccu.sunrise + ' "class="setup_inp"><br> \
-                        <a style="line-height: 30px" class="item_font">Abenddämmerung</a> <input data-info="sunset" value="' + SGI.settings.ccu.sunset + ' "class="setup_inp"><br>\
-                          <hr>\
-                        <h3>Tageszeiten</h3>\
-                        <a style="line-height: 30px" class="item_font">Morgen</a>         <input data-info="morgen" value="' + SGI.settings.ccu.morgen + ' "class="setup_inp"><br>\
-                        <a style="line-height: 30px" class="item_font">Vormittag</a>      <input data-info="vormittag" value="' + SGI.settings.ccu.vormittag + ' "class="setup_inp"><br>\
-                        <a style="line-height: 30px" class="item_font">Mittag</a>         <input data-info="mittag" value="' + SGI.settings.ccu.mittag + ' "class="setup_inp"><br>\
-                        <a style="line-height: 30px" class="item_font">Nachmittag</a>     <input data-info="nachmittag" value="' + SGI.settings.ccu.nachmittag + ' "class="setup_inp"><br>\
-                        <a style="line-height: 30px" class="item_font">Abend</a>          <input data-info="abend" value="' + SGI.settings.ccu.abend + ' "class="setup_inp"><br>\
-                        <a style="line-height: 30px" class="item_font">Nacht</a>          <input disabled data-info="nacht" value="' + SGI.settings.ccu.nacht + ' "class="setup_inp"><br>\
-                    </div>\
-                   </div>');
-        $("#dialog_setup").dialog({
-            height: h,
-            width: 500,
-            resizable: true,
-            close: function () {
-                $("#dialog_setup").remove();
-            }
-        });
+        var _data = data.split("\n").join("<br>").replace(/file:\/\/\//g, "").replace(/at HTMLDocument./g, "");
 
-        $("#dialog_setup").perfectScrollbar({
-            wheelSpeed: 60
-        });
-
-    },
-
-    info_box: function (data) {
-
-        var _data = data.split("\n").join("<br />").replace("file:*ScriptGUI", "");
+        var mail = "";
+        if (scope.setup.user_mail.split("@").length > 1) {
+            mail = scope.setup.user_mail;
+        }
 
         $("body").append('\
                    <div id="dialog_info"  title="Info">\
@@ -2053,9 +2162,9 @@ jQuery.extend(true, SGI, {
                    <div class="err_text">' + _data + '</div>\
                    <hr>\
                    <span>' + SGI.translate("Die Folgenden angaben sind optional:") + '</span><br><br>\
-                   <span style="width: 150px; display: inline-block">' + SGI.translate("E-Mail Adresse : ") + '</span><input style="width: 317px; "type="email"/><br>\
-                   <div style="display: flex; align-items: center"><span style="width: 150px ; display: inline-block">' + SGI.translate("Kommentar : ") + '</span><textarea style="width: 315px; height: 60px; max-width: 315px"></textarea></div>\
-                   <span style="width: 150px; display: inline-block">' + SGI.translate("Programm Daten: ") + '</span></span><input style="height:20px; width:20px; margin-left: 0; vertical-align: middle;" checked value="true" type="checkbox"/><br>\
+                   <span style="width: 150px; display: inline-block">' + SGI.translate("E-Mail Adresse : ") + '</span><input id="inp_error_mail" value="' + mail + '" style="width: 317px; "type="email"/><br>\
+                   <div style="display: flex; align-items: center"><span style="width: 150px ; display: inline-block">' + SGI.translate("Kommentar : ") + '</span><textarea id="txt_error_comment" style="width: 315px; height: 60px; max-width: 315px"></textarea></div>\
+                   <span style="width: 150px; display: inline-block">' + SGI.translate("Programm Daten: ") + '</span></span><input id="inp_prg_data" style="height:20px; width:20px; margin-left: 0; vertical-align: middle;" checked value="true" type="checkbox"/><br>\
                    <br><br>\
                    <div style="text-align: center">\
                    <button id="btn_info_send" >' + SGI.translate("Senden") + '</button>\
@@ -2064,11 +2173,9 @@ jQuery.extend(true, SGI, {
         </div>');
 
         $("#dialog_info").dialog({
-//            modal: true,
-            dialogClass: "info_box",
+            dialogClass: "error_box",
             maxWidth: "90%",
             width: "auto",
-
             close: function () {
                 $("#dialog_info").remove();
             }
@@ -2078,18 +2185,79 @@ jQuery.extend(true, SGI, {
         });
 
         $("#btn_info_send").button().click(function () {
-            var send_data = {
-                error: _data,
-                user: "steffen",
-                mail: "steffen@ccu.io",
-                komment: "alles klar"
-            };
-
-            $.post("37.120.169.17:3000", send_data, function (err) {
-                console.log(err)
-            }, "json");
-
+            SGI.server_error(_data);
             $("#dialog_info").remove();
+        });
+    },
+
+    update: function (show) {
+        $("#dialog_update").remove();
+
+        upd.checkNewVersion(function (error, newVersionExists, manifest) {
+
+            if (!error && newVersionExists || show) {
+
+
+                $("body").append('\
+                    <div id="dialog_update" style="width: 438px; height:428px; text-align: center" title="' + SGI.translate("Update") + '">\
+                    <img src="./img/logo.png" style="width: 300px"/>\
+                    <br><br><br>\
+                    <div style="width: 200px; display: inline-block;text-align: left">' + SGI.translate("Version ist:") + '</div><div style="width: 250px; display: inline-block;text-align: left">' + up_pkg.version + '</div>\
+                    <br><br>\
+                    <div style="width: 200px; display: inline-block;text-align: left">' + SGI.translate("erstellung") + '</div><div style="width: 250px; display: inline-block;text-align: left">' + up_pkg.build_date + ' ' + up_pkg.build_time + '</div>\
+                    <br><br><hr><br>\
+                    <div style="width: 200px; display: inline-block;text-align: left">' + SGI.translate("Neuste Version: ") + '</div><div style="width: 250px; display: inline-block;text-align: left">' + manifest.version + '</div>\
+                    <br><br>\
+                    <div style="width: 200px; display: inline-block;text-align: left">' + SGI.translate("erstellung") + '</div><div style="width: 250px; display: inline-block;text-align: left">' + manifest.build_date + ' ' + manifest.build_time + '</div>\
+                    <br><br><br>\
+                    <button id="btn_update">' + SGI.translate("Update") + '</button>\
+                    </div>');
+
+                $("#dialog_update").dialog({
+                    width: "auto",
+                    height: 500,
+                    dialogClass: "update",
+                    modal: true,
+                    close: function () {
+                        $("#dialog_update").remove();
+                    }
+                });
+                $("#btn_update").button()
+                    .click(function () {
+                        $("#btn_update").remove();
+                        $("#dialog_update").append('<div style="width: 100%; height: 33px; line-height: 33px" class="ui-state-default ui-corner-all" id="update_info"></div>');
+                        $('#update_info').text("Downloading");
+
+                        upd.download(function (error, filename) {
+                            if (!error) {
+                                $('#update_info').text("Unzip");
+
+                                upd.unpack(filename, function (error, newAppPath) {
+                                    if (!error) {
+                                        $('#update_info').text("Restart");
+                                        var _np = newAppPath.split("ScriptGUI.");
+                                        var np;
+                                        if (SGI.os == "darwin") {
+                                            np = newAppPath
+                                        } else {
+                                            np = _np[0] + "ScriptGUI/ScriptGUI." + _np[1];
+                                        }
+                                        upd.runInstaller(np, [upd.getAppPath(), upd.getAppExec()], {});
+                                        main_win.close()
+
+                                    } else {
+                                        throw error
+                                    }
+                                }, manifest);
+                            }
+                        }, manifest);
+                    });
+
+
+                if (!newVersionExists) {
+                    $("#btn_update").button("disable")
+                }
+            }
         });
     },
 
@@ -2196,9 +2364,9 @@ jQuery.extend(true, SGI, {
             if (SGI.key == 17) {
                 SGI.open_quick_help_dialog();
                 $("#help-content").children().remove();
-
+                var type
                 if ($(elem.target).hasClass("fbs_element") || $(elem.target).hasClass("mbs_element")) {
-                    var type = "";
+
                     if ($(elem.target).attr("id").split("_")[0] == "trigger") {
                         type = $(elem.target).attr("id").split("_")[0] + "_" + $(elem.target).attr("id").split("_")[1];
                     } else {
@@ -2227,7 +2395,7 @@ jQuery.extend(true, SGI, {
                 }
 
                 if ($(elem.target).parent().hasClass("fbs") || $(elem.target).parent().hasClass("mbs")) {
-                    var type = $(elem.target).parent().attr("id");
+                    type = $(elem.target).parent().attr("id");
                     $("#help-content").append(help[type]);
                 }
 
@@ -2235,5 +2403,4 @@ jQuery.extend(true, SGI, {
         });
     }
 });
-
 
